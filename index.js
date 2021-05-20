@@ -38,42 +38,59 @@
 
 // Challenge 2
 // - Add a booking section; a user can select a date and time to go on a tour at a brewery
-
-function getdata() {
-  fetch("https://api.openbrewerydb.org/breweries")
-    .then(function (resp) {
-      return resp.json();
-    })
-    .then(function (resp) {
-      state.breweries = resp;
-    });
-}
 const state = {
   breweries: [],
 };
-getdata();
+
+let stateinfo = [];
+function getdata(usstate) {
+  return fetch(
+    `https://api.openbrewerydb.org/breweries?by_state=${usstate}&per_page=50`
+  )
+    .then(function (resp) {
+      return resp.json();
+    })
+    .then(function (statebreweries) {
+      let filteredbreweris = statebreweries.filter(function (brewery) {
+        return ["micro", "regional", "brewpub"].includes(brewery.brewery_type);
+      });
+      state.breweries = filteredbreweris;
+      stateinfo = state.breweries;
+      return stateinfo;
+    });
+}
 
 // get state info
-let stateinfo = "";
-function getstateinfo() {
-  stateinfo = state.breweries.filter(function (item) {
-    return (
-      item.state.toUpperCase() === stateinput.value.toString().toUpperCase()
-    );
-  });
-}
+//
+// function getstateinfo() {
+//   stateinfo = state.breweries.filter(function (item) {
+//     return (
+//       item.state.toUpperCase() === stateinput.value.toString().toUpperCase()
+//     );
+//   });
+// // }
 
 let formel = document.querySelector("#select-state-form");
 let stateinput = document.querySelector("#select-state");
 formel.addEventListener("submit", function (event) {
   event.preventDefault();
-  getstateinfo();
-  //trigger show function
+  let usstate = stateinput.value;
+  getdata(usstate).then(function (stateinfo) {
+    loadmainsection(usstate, stateinfo);
+  });
+  //need to use .then to trigger show function
 });
 
-function loadmainsection() {}
+function loadmainsection(usstate, stateinfo) {
+  loadaside(usstate);
+  createmainlisttitle();
+  loadlists(stateinfo);
+}
+
 const mainel = document.querySelector("main");
-function loadaside() {
+const ulel = document.createElement("ul");
+
+function loadaside(usstate) {
   const asideel = document.createElement("aside");
   asideel.classList.add("filters-section");
   mainel.append(asideel);
@@ -98,20 +115,27 @@ function loadaside() {
   const opt = document.createElement("option");
   opt.setAttribute("value", "");
   opt.innerText = "Select a type...";
+  filtersectionel.append(opt);
+  let optionsarray = ["micro", "regional", "brewpub"];
 
-  const optone = document.createElement("option");
-  optone.setAttribute("value", "micro");
-  optone.innerText = "micro";
+  for (const option of optionsarray) {
+    const breweriytype = document.createElement("option");
+    breweriytype.setAttribute("value", option);
+    breweriytype.innerText = option;
+    filtersectionel.append(breweriytype);
+  }
 
-  const optwo = document.createElement("option");
-  optwo.setAttribute("value", "regional");
-  optwo.innerText = "regional";
+  filtersectionel.addEventListener("change", function (event) {
+    let option = event.target.value;
+    loaddataforsinglebretype(usstate, option).then(function (
+      optionfilterfromserver
+    ) {
+      //   console.log(option);
+      //   console.log(optionfilterfromserver);
+      loadlists(optionfilterfromserver);
+    });
+  });
 
-  const opthree = document.createElement("option");
-  opthree.setAttribute("value", "brewpub");
-  opthree.innerText = "brewpub";
-
-  filtersectionel.append(opt, optone, optwo, opthree);
   formfilterel.append(filterlabel, filtersectionel);
 
   const divelcity = document.createElement("div");
@@ -127,13 +151,11 @@ function loadaside() {
   formfilterbycity.setAttribute("id", "filter-by-city-form");
 
   for (const cityinfo of stateinfo) {
-    console.log(cityinfo);
     const checkboxinput = document.createElement("input");
     let cityname = cityinfo.city;
     checkboxinput.setAttribute("type", "checkbox");
     checkboxinput.setAttribute("name", `${cityname}`);
     checkboxinput.setAttribute("value", `${cityname}`);
-
     const labelinputforcity = document.createElement("label");
     labelinputforcity.setAttribute("for", `${cityname}`);
     labelinputforcity.innerText = `${cityname}`;
@@ -142,98 +164,118 @@ function loadaside() {
 
   asideel.append(h2el, formfilterel, divelcity, formfilterbycity);
 }
-loadaside();
-function loadlist() {}
+function createmainlisttitle() {
+  let h1el = document.createElement("h1");
+  h1el.innerText = "List of Breweries";
 
-let h1el = document.createElement("h1");
-h1el.innerText = "List of Breweries";
+  let headerel = document.createElement("header");
+  headerel.classList.add("search-bar");
 
-let headerel = document.createElement("header");
-headerel.classList.add("search-bar");
+  let articleel = document.createElement("article");
 
-let articleel = document.createElement("article");
-mainel.append(h1el, headerel, articleel);
+  let formforsearch = document.createElement("form");
+  formforsearch.setAttribute("id", "search-breweries-form");
 
-let formforsearch = document.createElement("form");
-formforsearch.setAttribute("id", "search-breweries-form");
+  let labelforsearch = document.createElement("label");
+  labelforsearch.setAttribute("for", "search-breweries");
 
-let labelforsearch = document.createElement("label");
-labelforsearch.setAttribute("for", "search-breweries");
+  let h2forsearch = document.createElement("h2");
+  h2forsearch.innerText = "Search breweries";
+  labelforsearch.append(h2forsearch);
 
-let h2forsearch = document.createElement("h2");
-h2forsearch.innerText = "Search breweries";
-labelforsearch.append(h2forsearch);
+  let inputforsearch = document.createElement("input");
+  inputforsearch.setAttribute("id", "search-breweries");
+  inputforsearch.setAttribute("name", "search-breweries");
+  inputforsearch.setAttribute("type", "text");
 
-let inputforsearch = document.createElement("input");
-inputforsearch.setAttribute("id", "search-breweries");
-inputforsearch.setAttribute("name", "search-breweries");
-inputforsearch.setAttribute("type", "text");
-
-formforsearch.append(labelforsearch, labelforsearch, inputforsearch);
-headerel.append(formforsearch);
-
-let ulel = document.createElement("ul");
-ulel.classList.add("breweries-list");
-
-articleel.append(ulel);
+  formforsearch.append(labelforsearch, labelforsearch, inputforsearch);
+  headerel.append(formforsearch);
+  ulel.classList.add("breweries-list");
+  articleel.append(ulel);
+  mainel.append(h1el, headerel, articleel);
+  return ulel;
+}
 
 // need for loop
+function loadlists(singletypebrewery) {
+  for (const optionstate of singletypebrewery) {
+    loadlist(optionstate);
+  }
+}
+function loadlist(filterinfo) {
+  let listofshop = document.createElement("li");
+  ulel.append(listofshop);
 
-let listofshop = document.createElement("li");
-ulel.append(listofshop);
+  let shopname = document.createElement("h2");
+  // variable
+  shopname.innerText = filterinfo.name;
 
-let shopname = document.createElement("h2");
-// variable
-shopname.innerText = "shopname";
+  let divbretype = document.createElement("div");
+  divbretype.classList.add("type");
+  // variable
+  divbretype.innerText = filterinfo.brewery_type;
 
-let divbretype = document.createElement("div");
-divbretype.classList.add("type");
-// variable
-divbretype.innerText = "divbretype";
+  let addresssection = document.createElement("section");
+  addresssection.classList.add("address");
 
-let addresssection = document.createElement("section");
-addresssection.classList.add("address");
+  let addressh3 = document.createElement("h3");
+  addressh3.innerText = "Address:";
 
-let addressh3 = document.createElement("h3");
-addressh3.innerText = "Address:";
+  let roadaddress = document.createElement("p");
+  // varible
+  roadaddress.innerText = filterinfo.street;
 
-let roadaddress = document.createElement("p");
-// varible
-roadaddress.innerText = "roadaddress";
+  let citypluspostcode = document.createElement("p");
+  let strongsign = document.createElement("strong");
+  citypluspostcode.append(strongsign);
+  // variable
+  strongsign.innerText = `${filterinfo.city}, ${filterinfo.postal_code}`;
 
-let citypluspostcode = document.createElement("p");
-let strongsign = document.createElement("strong");
-citypluspostcode.append(strongsign);
-strongsign.innerText = "city, postcode";
+  addresssection.append(addressh3, roadaddress, citypluspostcode);
 
-addresssection.append(addressh3, roadaddress, citypluspostcode);
+  let phonesection = document.createElement("section");
+  phonesection.classList.add("phone");
 
-let phonesection = document.createElement("section");
-phonesection.classList.add("phone");
+  let phoneh3 = document.createElement("h3");
+  phoneh3.innerText = "Phone:";
 
-let phoneh3 = document.createElement("h3");
-phoneh3.innerText = "Phone:";
+  let phonep = document.createElement("p");
+  // varible
+  phonep.innerText = filterinfo.phone;
 
-let phonep = document.createElement("p");
-// varible
-phonep.innerText = "phone";
+  phonesection.append(phoneh3, phonep);
 
-phonesection.append(phoneh3, phonep);
+  let linksection = document.createElement("section");
+  linksection.classList.add("link");
 
-let linksection = document.createElement("section");
-linksection.classList.add("link");
+  let alink = document.createElement("a");
+  // varbible
+  alink.setAttribute("href", filterinfo.website_url);
+  alink.setAttribute("target", "_blank");
+  alink.innerText = "Visit Website";
 
-let alink = document.createElement("a");
-// varbible
-alink.setAttribute("href", ".");
-alink.setAttribute("target", "_blank");
-alink.innerText = "Visit Website";
+  linksection.append(alink);
+  listofshop.append(
+    shopname,
+    divbretype,
+    addresssection,
+    phonesection,
+    linksection
+  );
+}
 
-linksection.append(alink);
-listofshop.append(
-  shopname,
-  divbretype,
-  addresssection,
-  phonesection,
-  linksection
-);
+function loaddataforsinglebretype(usstate, option) {
+  return getdata(usstate).then(function (datafromserver) {
+    let singletypebrewery = datafromserver.filter(function (data) {
+      return data.brewery_type === option;
+    });
+    console.log(singletypebrewery);
+    return singletypebrewery;
+  });
+}
+
+function loaddataforcity() {}
+
+function loaddataforname() {}
+
+// clear all make all checkbox unchecked and load all three data
