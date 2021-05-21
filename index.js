@@ -69,14 +69,16 @@ formel.addEventListener("submit", function (event) {
   page.setAttribute("style", "visibility: visible");
   let usstate = stateinput.value;
   getdata(usstate).then(function (stateinfo) {
+    let newindex = state.indexupdate + 10;
+    stateinfo = state.breweries.slice(state.indexupdate, newindex);
     loadmainsection(usstate, stateinfo);
-    console.log(state);
     let pageselector = document.querySelector(".second");
     pageselector.addEventListener("click", function (event) {
       event.preventDefault();
       state.indexupdate = 10;
-      loadmainsection(usstate, stateinfo);
-      console.log(state);
+      newindex = newindex + 10;
+      let newstateinfo = state.breweries.slice(state.indexupdate, newindex);
+      loadmainsection(usstate, newstateinfo);
     });
   });
 });
@@ -98,6 +100,9 @@ function getrenderinfo() {
       return brewery.name.toLowerCase().includes(state.search.toLowerCase());
     });
   }
+
+  brewerytorender = brewerytorender.slice(0, 10);
+  console.log(brewerytorender);
   return brewerytorender;
 }
 
@@ -107,6 +112,7 @@ const ulel = document.createElement("ul");
 function loadmainsection(usstate, stateinfo) {
   loadaside(usstate);
   createmainlisttitle();
+
   loadlists(stateinfo);
 }
 
@@ -207,12 +213,14 @@ function loadaside(usstate) {
           state.brewcity.push(cityname);
         }
         let renderinfo = getrenderinfo();
+        console.log(renderinfo);
         loadlists(renderinfo);
         console.log(state);
       } else {
         let index = state.brewcity.indexOf(cityname);
         state.brewcity.splice(index, 1);
         let renderinfo = getrenderinfo();
+        console.log(renderinfo);
         loadlists(renderinfo);
         console.log(state);
       }
@@ -265,9 +273,8 @@ function createmainlisttitle() {
 // need for loop
 function loadlists(singletypebrewery) {
   ulel.innerText = "";
-  let newindex = state.indexupdate + 10;
-  let newsingles = singletypebrewery.slice(state.indexupdate, newindex);
-  for (const optionstate of newsingles) {
+  console.log(singletypebrewery);
+  for (const optionstate of singletypebrewery) {
     loadlist(optionstate);
   }
 }
