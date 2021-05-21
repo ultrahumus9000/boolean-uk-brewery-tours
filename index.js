@@ -43,9 +43,9 @@ const state = {
   brewtype: "",
   brewcity: [],
   search: "",
+  indexupdate: 0,
 };
 
-let stateinfo = [];
 function getdata(usstate) {
   return fetch(
     `https://api.openbrewerydb.org/breweries?by_state=${usstate}&per_page=50`
@@ -58,18 +58,26 @@ function getdata(usstate) {
         return ["micro", "regional", "brewpub"].includes(brewery.brewery_type);
       });
       state.breweries = filteredbreweris;
-
       return state.breweries;
     });
 }
-
+let page = document.querySelector("footer");
 let formel = document.querySelector("#select-state-form");
 let stateinput = document.querySelector("#select-state");
 formel.addEventListener("submit", function (event) {
   event.preventDefault();
+  page.setAttribute("style", "visibility: visible");
   let usstate = stateinput.value;
   getdata(usstate).then(function (stateinfo) {
     loadmainsection(usstate, stateinfo);
+    console.log(state);
+    let pageselector = document.querySelector(".second");
+    pageselector.addEventListener("click", function (event) {
+      event.preventDefault();
+      state.indexupdate = 10;
+      loadmainsection(usstate, stateinfo);
+      console.log(state);
+    });
   });
 });
 
@@ -93,14 +101,14 @@ function getrenderinfo() {
   return brewerytorender;
 }
 
+const mainel = document.querySelector("main");
+const ulel = document.createElement("ul");
+
 function loadmainsection(usstate, stateinfo) {
   loadaside(usstate);
   createmainlisttitle();
   loadlists(stateinfo);
 }
-
-const mainel = document.querySelector("main");
-const ulel = document.createElement("ul");
 
 function loadaside(usstate) {
   mainel.innerHTML = "";
@@ -200,11 +208,13 @@ function loadaside(usstate) {
         }
         let renderinfo = getrenderinfo();
         loadlists(renderinfo);
+        console.log(state);
       } else {
         let index = state.brewcity.indexOf(cityname);
         state.brewcity.splice(index, 1);
         let renderinfo = getrenderinfo();
         loadlists(renderinfo);
+        console.log(state);
       }
     });
   }
@@ -255,8 +265,8 @@ function createmainlisttitle() {
 // need for loop
 function loadlists(singletypebrewery) {
   ulel.innerText = "";
-
-  let newsingles = singletypebrewery.slice(0, 10);
+  let newindex = state.indexupdate + 10;
+  let newsingles = singletypebrewery.slice(state.indexupdate, newindex);
   for (const optionstate of newsingles) {
     loadlist(optionstate);
   }
@@ -323,7 +333,3 @@ function loadlist(filterinfo) {
     linksection
   );
 }
-
-// clear all make all checkbox unchecked and load all three data
-
-// line 164, 165,135 doesnt work 209

@@ -1,5 +1,7 @@
 body {
   font-family: sans-serif;
+  height: 100vh;
+  overflow: scroll;
 }
 
 .main-header {
@@ -229,4 +231,19 @@ article {
   text-align: center;
   text-decoration: none;
   font-weight: bold;
+}
+footer {
+  display: grid;
+  justify-content: center;
+  visibility: hidden;
+}
+a {
+  text-decoration: none;
+}
+td {
+  padding-right: 30px;
+}
+td span {
+  border-bottom: 2px solid orange;
+  padding: 4px;
 }
