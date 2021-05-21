@@ -40,10 +40,9 @@
 // - Add a booking section; a user can select a date and time to go on a tour at a brewery
 const state = {
   breweries: [],
-  brewtype: [],
+  brewtype: "",
   brewcity: [],
-  check: [],
-  search: [],
+  search: "",
 };
 
 let stateinfo = [];
@@ -64,16 +63,6 @@ function getdata(usstate) {
     });
 }
 
-// get state info
-//
-// function getstateinfo() {
-//   stateinfo = state.breweries.filter(function (item) {
-//     return (
-//       item.state.toUpperCase() === stateinput.value.toString().toUpperCase()
-//     );
-//   });
-// // }
-
 let formel = document.querySelector("#select-state-form");
 let stateinput = document.querySelector("#select-state");
 formel.addEventListener("submit", function (event) {
@@ -82,9 +71,27 @@ formel.addEventListener("submit", function (event) {
   getdata(usstate).then(function (stateinfo) {
     loadmainsection(usstate, stateinfo);
   });
-
-  //need to use .then to trigger show function
 });
+
+function getrenderinfo() {
+  let brewerytorender = state.breweries;
+  if (state.brewtype !== "") {
+    brewerytorender = brewerytorender.filter(function (brewery) {
+      return brewery.brewery_type === state.brewtype;
+    });
+  }
+  if (state.brewcity.length !== 0) {
+    brewerytorender = brewerytorender.filter(function (brewery) {
+      return state.brewcity.includes(brewery.city);
+    });
+  }
+  if (state.search !== "") {
+    brewerytorender = brewerytorender.filter(function (brewery) {
+      return brewery.name.toLowerCase().includes(state.search.toLowerCase());
+    });
+  }
+  return brewerytorender;
+}
 
 function loadmainsection(usstate, stateinfo) {
   loadaside(usstate);
@@ -96,6 +103,7 @@ const mainel = document.querySelector("main");
 const ulel = document.createElement("ul");
 
 function loadaside(usstate) {
+  mainel.innerHTML = "";
   const asideel = document.createElement("aside");
   asideel.classList.add("filters-section");
   mainel.append(asideel);
@@ -132,15 +140,9 @@ function loadaside(usstate) {
   }
 
   filtersectionel.addEventListener("change", function (event) {
-    let option = event.target.value;
-    ulel.innerText = "";
-    if (option == "") {
-      loadlists(state.breweries);
-      state.brewtype = [];
-    } else {
-      let optionfilterfromserver = loaddataforsinglebretype(option);
-      loadlists(optionfilterfromserver);
-    }
+    state.brewtype = event.target.value;
+    let breweryinfo = getrenderinfo();
+    loadlists(breweryinfo);
   });
 
   formfilterel.append(filterlabel, filtersectionel);
@@ -149,44 +151,63 @@ function loadaside(usstate) {
   divelcity.setAttribute("class", "filter-by-city-heading");
   const h3cityel = document.createElement("h3");
   h3cityel.innerText = "Cities";
-  const btn = document.createElement("button");
-  btn.setAttribute("class", "clear-all-btn");
-  btn.innerText = "clear all";
-  divelcity.append(h3cityel, btn);
+  const clearbtn = document.createElement("button");
+  clearbtn.setAttribute("class", "clear-all-btn");
+  clearbtn.innerText = "clear all";
+  divelcity.append(h3cityel, clearbtn);
+
+  clearbtn.addEventListener("click", function () {
+    let allCheckBox = document.querySelectorAll("input[type = 'checkbox']");
+    for (const checkbox of allCheckBox) {
+      checkbox.checked = false;
+    }
+    filtersectionel.value = "";
+    state.brewcity = [];
+    console.log(state);
+    loadlists(state.breweries);
+  });
 
   const formfilterbycity = document.createElement("form");
   formfilterbycity.setAttribute("id", "filter-by-city-form");
 
-  for (const cityinfo of state.breweries) {
+  // or load without if statement
+  function unique(array) {
+    return [...new Set(array)];
+  }
+  let needfiltercity = state.breweries.map(function (brewery) {
+    return brewery.city;
+  });
+  let readycitylist = unique(needfiltercity).slice().sort();
+
+  //   let checkboxcity = [];
+  for (const cityinfo of readycitylist) {
+    // let checkboxinlist = !checkboxcity.includes(cityinfo.city);
+    // checkboxcity.push(cityinfo.city);
     const checkboxinput = document.createElement("input");
-    let cityname = cityinfo.city;
     checkboxinput.setAttribute("type", "checkbox");
-    checkboxinput.setAttribute("name", `${cityname}`);
-    checkboxinput.setAttribute("value", `${cityname}`);
+    checkboxinput.setAttribute("name", `${cityinfo}`);
+    checkboxinput.setAttribute("value", `${cityinfo}`);
 
     const labelinputforcity = document.createElement("label");
-    labelinputforcity.setAttribute("for", `${cityname}`);
-    labelinputforcity.innerText = `${cityname}`;
+    labelinputforcity.setAttribute("for", `${cityinfo}`);
+    labelinputforcity.innerText = `${cityinfo}`;
     formfilterbycity.append(checkboxinput, labelinputforcity);
-  }
-
-  formfilterbycity.addEventListener("click", function (event) {
-    let checkboxarry = [];
-    let checkedresult = event.target.value;
-    if (event.target.checked) {
-      console.log(state.brewtype);
-      if (state.brewtype.length === 0) {
-        ulel.innerText = "";
-        checkboxarry.push(checkedresult);
-        console.log(state.breweries);
-        let citybefiltered = state.breweries.filter(function (brewery) {
-          return checkboxarry.includes(brewery.city);
-        });
-        state.check = citybefiltered;
-        loadlists(citybefiltered);
+    checkboxinput.addEventListener("click", function (event) {
+      let cityname = event.target.value;
+      if (event.target.checked) {
+        if (!state.brewcity.includes(cityname)) {
+          state.brewcity.push(cityname);
+        }
+        let renderinfo = getrenderinfo();
+        loadlists(renderinfo);
+      } else {
+        let index = state.brewcity.indexOf(cityname);
+        state.brewcity.splice(index, 1);
+        let renderinfo = getrenderinfo();
+        loadlists(renderinfo);
       }
-    }
-  });
+    });
+  }
 
   asideel.append(h2el, formfilterel, divelcity, formfilterbycity);
 }
@@ -220,15 +241,24 @@ function createmainlisttitle() {
   ulel.classList.add("breweries-list");
   articleel.append(ulel);
   mainel.append(h1el, headerel, articleel);
+  formforsearch.addEventListener("input", function (event) {
+    event.preventDefault();
+    state.search = formforsearch["search-breweries"].value;
+    // console.log(getrenderinfo());
+    let renderinfo = getrenderinfo();
+    loadlists(renderinfo);
+  });
+
   return ulel;
 }
 
 // need for loop
 function loadlists(singletypebrewery) {
-  console.log(singletypebrewery);
-  for (const optionstate of singletypebrewery) {
+  ulel.innerText = "";
+
+  let newsingles = singletypebrewery.slice(0, 10);
+  for (const optionstate of newsingles) {
     loadlist(optionstate);
-    console.log("lol");
   }
 }
 
@@ -294,26 +324,6 @@ function loadlist(filterinfo) {
   );
 }
 
-function loaddataforsinglebretype(option) {
-  let singletypebrewery = state.breweries.filter(function (data) {
-    return data.brewery_type === option;
-  });
-  state.brewtype = singletypebrewery;
-  return state.brewtype;
-}
-
-// function loaddataforcity(usstate, citysname) {
-//   return getdata(usstate).then(function (filterdfromserver) {
-//     let filtercity = filterdfromserver.filter(function (optioncity) {
-//       return optioncity.city === citysname;
-//     });
-//     state.brewcity = filtercity;
-//     return filtercity;
-//   });
-// }
-
-function loaddataforname() {}
-
 // clear all make all checkbox unchecked and load all three data
 
-// line 164, 165,135 doesnt work
+// line 164, 165,135 doesnt work 209
