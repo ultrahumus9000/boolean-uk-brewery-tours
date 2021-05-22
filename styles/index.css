@@ -2,12 +2,12 @@ body {
   font-family: sans-serif;
   height: 100vh;
   overflow: scroll;
+  position: relative;
 }
 
 .main-header {
   padding: 1rem;
   margin-bottom: 2rem;
-
   background-color: #fbc02d;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16), 0 3px 12px rgba(0, 0, 0, 0.08);
 }
@@ -162,7 +162,7 @@ article {
   display: grid;
   grid-template-areas:
     "heading heading type"
-    "address phone ."
+    "address phone link"
     ". . link";
   grid-template-columns: repeat(2, 1fr) minmax(140px, auto);
   grid-template-rows: repeat(3, auto);
@@ -217,9 +217,13 @@ article {
 
 .breweries-list li .link {
   grid-area: link;
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 5px;
 }
 
-.breweries-list li .link a {
+.breweries-list li .link a,
+.book_button {
   display: block;
   padding: 0.5rem 1rem;
 
@@ -246,4 +250,79 @@ td {
 td span {
   border-bottom: 2px solid orange;
   padding: 4px;
+}
+
+.myModal {
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  background-color: #18171790;
+  /* z-index: 1; */
+}
+.book_button {
+  background-color: orange;
+  border: none;
+}
+.bookform {
+  display: grid;
+  gap: 10px;
+  justify-items: left;
+  padding: 40px;
+  border-radius: 20px;
+  background: url(https://images.pexels.com/photos/301692/pexels-photo-301692.jpeg?auto=compress&cs=tinysrgb&dpr=2&w=500);
+  background-position: center;
+  background-size: cover;
+  position: fixed;
+  top: 30%;
+  right: 30%;
+  color: snow;
+  width: 600px;
+  height: 400px;
+  /* z-index: 1; */
+}
+li .bookform p {
+  padding-left: 0px;
+}
+.breweryshop {
+  font-size: 1.5rem;
+  background-color: #00000090;
+  padding: 5px;
+  border-radius: 10px;
+}
+.bookform label {
+  display: grid;
+}
+.bookform select {
+  margin-top: 3px;
+  width: 123%;
+}
+
+.bookform label input {
+  border: none;
+  margin-top: 3px;
+  height: 25px;
+  border-radius: 10px;
+  padding: 5px;
+  width: 100%;
+}
+.bookform button {
+  margin-top: 3px;
+  padding: 0px 20px;
+  width: 33%;
+  border-radius: 30px;
+  border: none;
+  background-color: lightseagreen;
+  color: snow;
+  height: 32px;
+}
+.bookform button:active {
+  background-color: crimson;
+  color: snow;
+}
+.bookform button:hover {
+  background-color: rgb(178, 178, 231);
+  color: darkslateblue;
+}
+.bookform:hover {
+  filter: saturate(1.5);
 }

@@ -44,6 +44,7 @@ const state = {
   brewcity: [],
   search: "",
   indexupdate: 0,
+  book: [],
 };
 
 function getdata(usstate) {
@@ -82,6 +83,8 @@ formel.addEventListener("submit", function (event) {
     });
   });
 });
+
+function pagedynamic() {}
 
 function getrenderinfo() {
   let brewerytorender = state.breweries;
@@ -175,10 +178,12 @@ function loadaside(usstate) {
     for (const checkbox of allCheckBox) {
       checkbox.checked = false;
     }
-    filtersectionel.value = "";
+    state.brewtype = "";
     state.brewcity = [];
     console.log(state);
-    loadlists(state.breweries);
+    let renderinfo = getrenderinfo();
+    console.log(renderinfo);
+    loadlists(renderinfo);
   });
 
   const formfilterbycity = document.createElement("form");
@@ -331,6 +336,13 @@ function loadlist(filterinfo) {
   alink.setAttribute("target", "_blank");
   alink.innerText = "Visit Website";
 
+  let bookBtn = document.createElement("button");
+  bookBtn.setAttribute("class", "book_button");
+  bookBtn.innerText = "Book";
+  bookBtn.addEventListener("click", function () {
+    createmodal(filterinfo);
+  });
+  linksection.append(bookBtn);
   linksection.append(alink);
   listofshop.append(
     shopname,
@@ -339,4 +351,85 @@ function loadlist(filterinfo) {
     phonesection,
     linksection
   );
+}
+
+function createmodal(filterinfo) {
+  let myModal = document.createElement("div");
+  myModal.setAttribute("class", "myModal");
+  let bookform = document.createElement("form");
+  bookform.classList.add("bookform");
+  let bookp = document.createElement("p");
+  bookp.innerText = "Welcome to book with ";
+
+  let breweryshop = document.createElement("span");
+  breweryshop.classList.add("breweryshop");
+  breweryshop.innerText = filterinfo.name;
+  bookp.append(breweryshop);
+
+  let bookname = document.createElement("label");
+  bookname.innerText = "Your Name";
+  let nameinput = document.createElement("input");
+  nameinput.setAttribute("type", "text");
+  nameinput.setAttribute("name", "bookname");
+  bookname.append(nameinput);
+
+  let visitlable = document.createElement("label");
+  visitlable.innerText = "Date";
+  let visitinput = document.createElement("input");
+  visitinput.setAttribute("type", "date");
+  visitinput.setAttribute("name", "date");
+  visitlable.append(visitinput);
+
+  let timeselectlable = document.createElement("label");
+
+  timeselectlable.innerText = "Choose a Time Slot";
+
+  let visitselect = document.createElement("select");
+  let timeArray = ["11:00 AM", "12:00 PM", "13:00 PM", "14:00 PM"];
+
+  for (const timeslot of timeArray) {
+    let timebookslot = document.createElement("option");
+    timebookslot.setAttribute("class", "timeslot");
+    timebookslot.setAttribute("value", timeslot);
+    timebookslot.innerText = timeslot;
+    visitselect.append(timebookslot);
+  }
+
+  timeselectlable.append(visitselect);
+
+  let phonelabel = document.createElement("label");
+  phonelabel.innerText = "Contact Number";
+
+  let phoneinput = document.createElement("input");
+  phoneinput.setAttribute("name", "phoneinput");
+  phoneinput.setAttribute("type", "tel");
+  phonelabel.append(phoneinput);
+
+  let confirmBtn = document.createElement("button");
+  confirmBtn.setAttribute("class", "confirmBtn");
+  confirmBtn.innerText = "Confirm";
+
+  bookform.append(
+    bookp,
+    bookname,
+    visitlable,
+    timeselectlable,
+    phonelabel,
+    confirmBtn
+  );
+  myModal.append(bookform);
+
+  document.body.prepend(myModal);
+
+  bookform.addEventListener("submit", function (event) {
+    event.preventDefault();
+    let bookObj = {
+      guestname: nameinput.value,
+      date: visitinput.value,
+      timeslot: visitselect.value,
+      contact: phoneinput.value,
+    };
+    state.book.push(bookObj);
+    myModal.remove();
+  });
 }
