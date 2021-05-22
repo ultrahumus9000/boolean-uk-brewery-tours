@@ -180,6 +180,7 @@ function loadaside(usstate) {
     }
     state.brewtype = "";
     state.brewcity = [];
+    filtersectionel.value = "";
     console.log(state);
     let renderinfo = getrenderinfo();
     console.log(renderinfo);
@@ -428,6 +429,7 @@ function createmodal(filterinfo) {
       date: visitinput.value,
       timeslot: visitselect.value,
       contact: phoneinput.value,
+      shopname: filterinfo.name,
     };
     state.book.push(bookObj);
     myModal.remove();
